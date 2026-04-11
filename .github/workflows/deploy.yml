@@ -1,0 +1,159 @@
+name: Deploy NexusAI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: nexusai_test
+          POSTGRES_USER: nexusai
+          POSTGRES_PASSWORD: test_secret
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r backend/requirements.txt
+      - name: Run all tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://nexusai:test_secret@localhost:5432/nexusai_test
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET: test_jwt_secret
+          APP_SECRET_KEY: test_app_secret_32_chars_minimum_x
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          cd backend
+          pytest tests/ -v --cov=app --cov-report=xml --cov-fail-under=70
+      - uses: codecov/codecov-action@v4
+        with: { file: backend/coverage.xml }
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for secrets
+        uses: trufflesecurity/trufflehog@main
+        with: { path: ./, base: HEAD~1 }
+      - name: Bandit security scan
+        run: |
+          pip install bandit
+          bandit -r backend/app/ -ll --exit-zero
+      - name: Dependency audit
+        run: |
+          pip install safety
+          cd backend && safety check -r requirements.txt --continue-on-error
+
+  build:
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: echo "version=${GITHUB_REF_NAME:-${GITHUB_SHA::8}}" >> $GITHUB_OUTPUT
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/nexusai-backend:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY }}/nexusai-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build & push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/nexusai-frontend:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY }}/nexusai-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Scan images for vulnerabilities
+        run: |
+          docker run --rm aquasec/trivy image \
+            ${{ env.REGISTRY }}/nexusai-backend:${{ steps.version.outputs.version }} \
+            --exit-code 0 --severity HIGH,CRITICAL
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to staging
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: deploy
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /opt/nexusai
+            export VERSION=${{ needs.build.outputs.version }}
+            export DOCKER_REGISTRY=${{ env.REGISTRY }}
+            docker compose -f docker-compose.production.yml pull
+            docker compose -f docker-compose.production.yml up -d --remove-orphans
+            docker compose -f docker-compose.production.yml ps
+      - name: Smoke tests
+        run: |
+          sleep 15
+          curl -f https://staging.nexusai.com/health || exit 1
+          curl -f https://staging.nexusai.com/health/ready || exit 1
+
+  deploy-production:
+    needs: [build, deploy-staging]
+    runs-on: ubuntu-latest
+    environment: production
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to production
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: deploy
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/nexusai
+            export VERSION=${{ needs.build.outputs.version }}
+            export DOCKER_REGISTRY=${{ env.REGISTRY }}
+            docker compose -f docker-compose.production.yml pull
+            docker compose -f docker-compose.production.yml up -d --remove-orphans
+      - name: Production smoke test
+        run: |
+          sleep 20
+          curl -f https://nexusai.com/health || exit 1
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: "NexusAI ${{ needs.build.outputs.version }} deployed to production"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

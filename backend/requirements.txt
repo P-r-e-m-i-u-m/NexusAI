@@ -1,0 +1,73 @@
+# Web framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+
+# Database
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.30.0
+alembic==1.13.3
+pgvector==0.3.5
+
+# Cache / Queue
+redis[hiredis]==5.1.1
+celery[redis]==5.4.0
+
+# Auth
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+python-dotenv==1.0.1
+
+# LLM / AI
+openai==1.54.0
+anthropic==0.37.0
+langchain==0.3.7
+langchain-openai==0.2.8
+langchain-community==0.3.7
+langgraph==0.2.48
+sentence-transformers==3.2.1
+faiss-cpu==1.9.0
+
+# RAG
+pypdf==5.1.0
+python-docx==1.1.2
+unstructured==0.16.5
+tiktoken==0.8.0
+
+# Audio
+openai-whisper
+torch==2.5.1
+torchaudio==2.5.1
+
+# Agent tools
+playwright==1.48.0
+beautifulsoup4==4.12.3
+requests==2.32.3
+httpx==0.27.2
+
+# Validation
+pydantic==2.9.2
+pydantic-settings==2.6.0
+email-validator==2.2.0
+
+# Observability
+prometheus-fastapi-instrumentator==7.0.0
+opentelemetry-api==1.27.0
+opentelemetry-sdk==1.27.0
+opentelemetry-instrumentation-fastapi==0.48b0
+sentry-sdk[fastapi]==2.17.0
+structlog==24.4.0
+
+# Testing
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+httpx==0.27.2
+factory-boy==3.3.1
+locust==2.32.2
+
+# Code quality
+black==24.10.0
+ruff==0.7.1
+mypy==1.13.0
+pre-commit==4.0.1

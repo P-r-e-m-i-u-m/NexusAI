@@ -1,0 +1,54 @@
+site_name: NexusAI Documentation
+site_url: https://docs.nexusai.com
+repo_url: https://github.com/your-username/nexusai
+repo_name: nexusai
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: guide/installation.md
+    - Quick Start: guide/quickstart.md
+    - Configuration: guide/configuration.md
+  - Features:
+    - Agents: guide/agents.md
+    - Workflows: guide/workflows.md
+    - Knowledge Base (RAG): guide/rag.md
+    - Audio Transcription: guide/audio.md
+    - Chat: guide/chat.md
+  - API Reference:
+    - Overview: api/overview.md
+    - Authentication: api/auth.md
+    - Agents: api/agents.md
+    - Workflows: api/workflows.md
+  - Deployment:
+    - Docker: deploy/docker.md
+    - Cloud (AWS/GCP): deploy/cloud.md
+    - SSL Setup: deploy/ssl.md
+  - Operations:
+    - Architecture: architecture.md
+    - Runbooks: runbooks.md
+    - Disaster Recovery: disaster-recovery.md
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - tables
