@@ -3,7 +3,6 @@ from typing import AsyncIterator, Optional, List, Dict
 from app.core.config import settings
 from app.core.logging import logger
 
-
 PROVIDERS = {
     "nvidia": {
         "base_url": settings.NVIDIA_BASE_URL,
@@ -73,7 +72,11 @@ async def chat(
 async def embed(text: str, provider: str = "nvidia") -> List[float]:
     client = get_client(provider)
     response = await client.embeddings.create(
-        model="nvidia/nv-embedqa-e5-v5" if provider == "nvidia" else "text-embedding-3-small",
+        model=(
+            "nvidia/nv-embedqa-e5-v5"
+            if provider == "nvidia"
+            else "text-embedding-3-small"
+        ),
         input=text,
     )
     return response.data[0].embedding
@@ -82,9 +85,11 @@ async def embed(text: str, provider: str = "nvidia") -> List[float]:
 def list_providers() -> List[Dict]:
     result = []
     for name, cfg in PROVIDERS.items():
-        result.append({
-            "name": name,
-            "available": bool(cfg["api_key"]),
-            "default_model": cfg["default_model"],
-        })
+        result.append(
+            {
+                "name": name,
+                "available": bool(cfg["api_key"]),
+                "default_model": cfg["default_model"],
+            }
+        )
     return result

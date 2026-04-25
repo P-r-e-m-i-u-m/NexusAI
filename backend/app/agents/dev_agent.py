@@ -1,10 +1,9 @@
 import subprocess
 import os
 import tempfile
-from typing import Dict, List, Optional
+from typing import Dict, List
 from app.services.llm import chat
 from app.core.logging import logger
-
 
 PLANNER_PROMPT = """You are an expert software architect and developer.
 Given a task, create a step-by-step plan to implement it.
@@ -39,6 +38,10 @@ class AIDeveloperAgent:
             provider=self.provider,
         )
         import json
+
+        if not isinstance(response, str):
+            raise TypeError("Expected non-streaming chat() call to return a string")
+
         try:
             return json.loads(response)
         except Exception:
@@ -47,6 +50,7 @@ class AIDeveloperAgent:
     async def code(self, task: str, context: str = "") -> Dict:
         logger.info("dev_agent_code", task=task[:80])
         import json
+
         response = await chat(
             messages=[
                 {"role": "system", "content": CODER_PROMPT},
@@ -55,6 +59,10 @@ class AIDeveloperAgent:
             model=self.model,
             provider=self.provider,
         )
+
+        if not isinstance(response, str):
+            raise TypeError("Expected non-streaming chat() call to return a string")
+
         try:
             return json.loads(response)
         except Exception:
@@ -69,14 +77,22 @@ class AIDeveloperAgent:
             model=self.model,
             provider=self.provider,
         )
+
+        if not isinstance(response, str):
+            raise TypeError("Expected non-streaming chat() call to return a string")
+
         return response
 
     def execute_command(self, command: str, timeout: int = 30) -> Dict:
         logger.info("dev_agent_exec", command=command)
         try:
             result = subprocess.run(
-                command, shell=True, capture_output=True,
-                text=True, timeout=timeout, cwd=self.workspace
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=self.workspace,
             )
             return {
                 "stdout": result.stdout,
@@ -111,23 +127,32 @@ class AIDeveloperAgent:
                 content = code_result.get("content", "")
                 filepath = self.write_file(filename, content)
                 review = await self.review(content)
-                results.append({
-                    "step": step["id"],
-                    "type": "code",
-                    "filename": filename,
-                    "content": content,
-                    "review": review,
-                    "filepath": filepath,
-                })
+                results.append(
+                    {
+                        "step": step["id"],
+                        "type": "code",
+                        "filename": filename,
+                        "content": content,
+                        "review": review,
+                        "filepath": filepath,
+                    }
+                )
                 context += f"\n\nFile {filename}:\n{content}"
 
             elif step_type == "command":
                 exec_result = self.execute_command(description)
-                results.append({
-                    "step": step["id"],
-                    "type": "command",
-                    "command": description,
-                    **exec_result,
-                })
+                results.append(
+                    {
+                        "step": step["id"],
+                        "type": "command",
+                        "command": description,
+                        **exec_result,
+                    }
+                )
 
-        return {"task": task, "plan": plan, "results": results, "workspace": self.workspace}
+        return {
+            "task": task,
+            "plan": plan,
+            "results": results,
+            "workspace": self.workspace,
+        }

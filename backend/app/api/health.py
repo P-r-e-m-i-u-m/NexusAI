@@ -43,6 +43,7 @@ async def readiness():
 
     all_ok = all(v == "ok" for v in checks.values())
     from app.db.session import get_pool_status
+
     return JSONResponse(
         status_code=200 if all_ok else 503,
         content={

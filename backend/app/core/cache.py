@@ -10,6 +10,7 @@ from app.core.logging import logger
 
 class LRUCache:
     """L1 in-memory LRU cache."""
+
     def __init__(self, max_size: int = 1000, ttl: int = 300):
         self.max_size = max_size
         self.ttl = ttl
@@ -53,7 +54,9 @@ class CacheManager:
 
     async def _get_redis(self):
         if not self._redis:
-            self._redis = await aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+            self._redis = await aioredis.from_url(
+                settings.REDIS_URL, decode_responses=True
+            )
         return self._redis
 
     def _make_key(self, namespace: str, params: Any) -> str:
@@ -79,7 +82,9 @@ class CacheManager:
         self._misses += 1
         return None
 
-    async def set(self, namespace: str, params: Any, value: Any, ttl: int = 3600) -> None:
+    async def set(
+        self, namespace: str, params: Any, value: Any, ttl: int = 3600
+    ) -> None:
         key = self._make_key(namespace, params)
         self.l1.set(key, value, ttl=min(ttl, 300))
         try:

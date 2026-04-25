@@ -67,9 +67,19 @@ db_query_duration = Histogram(
 )
 
 
-def record_llm_call(provider: str, model: str, prompt_tokens: int, completion_tokens: int, latency: float):
-    llm_tokens.labels(provider=provider, model=model, token_type="prompt").inc(prompt_tokens)
-    llm_tokens.labels(provider=provider, model=model, token_type="completion").inc(completion_tokens)
+def record_llm_call(
+    provider: str,
+    model: str,
+    prompt_tokens: int,
+    completion_tokens: int,
+    latency: float,
+):
+    llm_tokens.labels(provider=provider, model=model, token_type="prompt").inc(
+        prompt_tokens
+    )
+    llm_tokens.labels(provider=provider, model=model, token_type="completion").inc(
+        completion_tokens
+    )
     llm_latency.labels(provider=provider, model=model).observe(latency)
 
 

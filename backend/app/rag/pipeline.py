@@ -1,11 +1,7 @@
-import os
-import hashlib
 from typing import List, Dict, Optional
 from pathlib import Path
-import asyncio
 
 from app.services.llm import embed, chat
-from app.core.config import settings
 from app.core.logging import logger
 
 
@@ -18,10 +14,12 @@ class DocumentProcessor:
         ext = Path(filepath).suffix.lower()
         if ext == ".pdf":
             from pypdf import PdfReader
+
             reader = PdfReader(filepath)
             return "\n".join(page.extract_text() or "" for page in reader.pages)
         elif ext in [".docx", ".doc"]:
             from docx import Document
+
             doc = Document(filepath)
             return "\n".join(p.text for p in doc.paragraphs)
         elif ext in [".txt", ".md"]:
@@ -62,14 +60,21 @@ class VectorStore:
         if not self.embeddings:
             return []
         import numpy as np
+
         q = np.array(query_emb)
         scores = [
             np.dot(q, np.array(e)) / (np.linalg.norm(q) * np.linalg.norm(e) + 1e-8)
             for e in self.embeddings
         ]
-        top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
+        top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[
+            :top_k
+        ]
         return [
-            {"chunk": self.chunks[i], "score": float(scores[i]), "meta": self.metadata[i]}
+            {
+                "chunk": self.chunks[i],
+                "score": float(scores[i]),
+                "meta": self.metadata[i],
+            }
             for i in top_indices
         ]
 
@@ -83,7 +88,9 @@ def get_store(kb_id: str) -> VectorStore:
     return _stores[kb_id]
 
 
-async def ingest_document(kb_id: str, filepath: str, filename: str, provider: str = "nvidia"):
+async def ingest_document(
+    kb_id: str, filepath: str, filename: str, provider: str = "nvidia"
+):
     processor = DocumentProcessor()
     text = processor.extract_text(filepath)
     chunks = processor.chunk(text)
@@ -108,12 +115,22 @@ async def query_rag(
 
     context = "\n\n".join(r["chunk"] for r in results)
     messages = [
-        {"role": "system", "content": "You are a helpful assistant. Answer based only on the provided context. Be concise and accurate."},
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. Answer based only on the provided context. Be concise and accurate.",
+        },
         {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"},
     ]
     answer = await chat(messages=messages, provider=provider, model=model)
 
     return {
         "answer": answer,
-        "sources": [{"chunk": r["chunk"][:200], "score": r["score"], "filename": r["meta"].get("filename")} for r in results],
+        "sources": [
+            {
+                "chunk": r["chunk"][:200],
+                "score": r["score"],
+                "filename": r["meta"].get("filename"),
+            }
+            for r in results
+        ],
     }

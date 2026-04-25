@@ -2,7 +2,6 @@ from typing import List, Dict, Optional, AsyncIterator
 from dataclasses import dataclass, field
 from app.services.llm import chat
 from app.core.logging import logger
-import json
 
 
 @dataclass
@@ -27,7 +26,7 @@ class TaskConfig:
 class AgentExecutor:
     def __init__(self, config: AgentConfig):
         self.config = config
-        self.memory: List[Dict] = []
+        self.memory: List[Dict[str, str]] = []
 
     def _system_prompt(self) -> str:
         return f"""You are {self.config.name}, a specialized AI agent.
@@ -45,7 +44,9 @@ Format your final answer clearly."""
 
         user_content = task
         if context:
-            user_content = f"Context from previous agents:\n{context}\n\nYour task:\n{task}"
+            user_content = (
+                f"Context from previous agents:\n{context}\n\nYour task:\n{task}"
+            )
 
         messages.append({"role": "user", "content": user_content})
 
@@ -55,6 +56,9 @@ Format your final answer clearly."""
             model=self.config.model,
             provider=self.config.provider,
         )
+
+        if not isinstance(result, str):
+            raise TypeError("Expected non-streaming chat() call to return a string")
 
         self.memory.append({"role": "user", "content": user_content})
         self.memory.append({"role": "assistant", "content": result})
@@ -66,9 +70,19 @@ Format your final answer clearly."""
         messages.extend(self.memory[-6:])
         messages.append({"role": "user", "content": task})
 
-        stream = await chat(messages=messages, model=self.config.model,
-                            provider=self.config.provider, stream=True)
-        async for chunk in await stream:
+        stream = await chat(
+            messages=messages,
+            model=self.config.model,
+            provider=self.config.provider,
+            stream=True,
+        )
+
+        if isinstance(stream, str):
+            raise TypeError(
+                "Expected streaming chat() call to return an async iterator"
+            )
+
+        async for chunk in stream:
             if chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
 
@@ -81,8 +95,8 @@ class Crew:
         self.tasks = tasks
 
     async def run(self, on_progress=None) -> Dict:
-        results = {}
-        context_chain = []
+        results: Dict[str, str] = {}
+        context_chain: List[str] = []
 
         for i, task in enumerate(self.tasks):
             agent = self.agents.get(task.agent_name)
@@ -92,7 +106,9 @@ class Crew:
             context = "\n\n".join(context_chain) if context_chain else None
 
             if on_progress:
-                await on_progress({"step": i + 1, "agent": task.agent_name, "status": "running"})
+                await on_progress(
+                    {"step": i + 1, "agent": task.agent_name, "status": "running"}
+                )
 
             result = await agent.run(task.description, context=context)
             results[task.agent_name] = result
@@ -101,7 +117,14 @@ class Crew:
             logger.info("task_complete", agent=task.agent_name, step=i + 1)
 
             if on_progress:
-                await on_progress({"step": i + 1, "agent": task.agent_name, "status": "done", "result": result[:200]})
+                await on_progress(
+                    {
+                        "step": i + 1,
+                        "agent": task.agent_name,
+                        "status": "done",
+                        "result": result[:200],
+                    }
+                )
 
         return {"results": results, "final": context_chain[-1] if context_chain else ""}
 
@@ -110,13 +133,15 @@ class GraphAgent:
     """LangGraph-style stateful agent with human-in-the-loop support."""
 
     def __init__(self, nodes: Dict, edges: List[tuple]):
-        self.nodes = nodes   # {node_name: callable}
-        self.edges = edges   # [(from, to)] or [(from, to, condition_fn)]
+        self.nodes = nodes  # {node_name: callable}
+        self.edges = edges  # [(from, to)] or [(from, to, condition_fn)]
         self.state: Dict = {}
         self.checkpoints: List[Dict] = []
         self.paused_at: Optional[str] = None
 
-    async def run(self, initial_state: Dict, human_in_loop_nodes: List[str] = None) -> Dict:
+    async def run(
+        self, initial_state: Dict, human_in_loop_nodes: Optional[List[str]] = None
+    ) -> Dict:
         self.state = initial_state.copy()
         human_nodes = human_in_loop_nodes or []
         current = list(self.nodes.keys())[0]
@@ -125,7 +150,11 @@ class GraphAgent:
             if current in human_nodes:
                 self.paused_at = current
                 self.checkpoints.append({"node": current, "state": self.state.copy()})
-                return {"status": "awaiting_human", "paused_at": current, "state": self.state}
+                return {
+                    "status": "awaiting_human",
+                    "paused_at": current,
+                    "state": self.state,
+                }
 
             node_fn = self.nodes.get(current)
             if node_fn:

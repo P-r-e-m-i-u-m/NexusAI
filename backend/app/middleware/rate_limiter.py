@@ -1,6 +1,6 @@
 import time
 import redis.asyncio as aioredis
-from fastapi import Request, HTTPException
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.config import settings
@@ -17,13 +17,20 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
 
     async def get_redis(self):
         if not self._redis:
-            self._redis = await aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+            self._redis = await aioredis.from_url(
+                settings.REDIS_URL, decode_responses=True
+            )
         return self._redis
 
     async def dispatch(self, request: Request, call_next):
         ip = request.client.host if request.client else "unknown"
 
-        if ip in WHITELIST or request.url.path in ("/health", "/metrics", "/docs", "/redoc"):
+        if ip in WHITELIST or request.url.path in (
+            "/health",
+            "/metrics",
+            "/docs",
+            "/redoc",
+        ):
             return await call_next(request)
 
         r = await self.get_redis()
@@ -55,7 +62,9 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
             )
 
         response = await call_next(request)
-        response.headers["X-RateLimit-Remaining"] = str(min(remaining_min, remaining_hour))
+        response.headers["X-RateLimit-Remaining"] = str(
+            min(remaining_min, remaining_hour)
+        )
         response.headers["X-RateLimit-Reset"] = str(reset_at)
         response.headers["X-RateLimit-Limit"] = str(self.per_minute)
         return response

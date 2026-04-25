@@ -21,22 +21,29 @@ class ChatRequest(BaseModel):
 @router.post("/chat")
 async def llm_chat(request: ChatRequest):
     if request.stream:
+
         async def event_gen():
             stream = await chat(
-                messages=request.messages, model=request.model,
-                provider=request.provider, temperature=request.temperature,
-                max_tokens=request.max_tokens, stream=True,
+                messages=request.messages,
+                model=request.model,
+                provider=request.provider,
+                temperature=request.temperature,
+                max_tokens=request.max_tokens,
+                stream=True,
             )
             async for chunk in await stream:
                 content = chunk.choices[0].delta.content or ""
                 if content:
                     yield f"data: {json.dumps({'content': content})}\n\n"
             yield "data: [DONE]\n\n"
+
         return StreamingResponse(event_gen(), media_type="text/event-stream")
 
     result = await chat(
-        messages=request.messages, model=request.model,
-        provider=request.provider, temperature=request.temperature,
+        messages=request.messages,
+        model=request.model,
+        provider=request.provider,
+        temperature=request.temperature,
         max_tokens=request.max_tokens,
     )
     return {"content": result, "provider": request.provider}

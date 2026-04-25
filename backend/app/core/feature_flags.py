@@ -1,6 +1,6 @@
 import json
 import redis.asyncio as aioredis
-from typing import Any, Optional
+from typing import Optional
 from app.core.config import settings
 from app.core.logging import logger
 
@@ -22,7 +22,9 @@ class FeatureFlags:
 
     async def _get_redis(self):
         if not self._redis:
-            self._redis = await aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+            self._redis = await aioredis.from_url(
+                settings.REDIS_URL, decode_responses=True
+            )
         return self._redis
 
     async def is_enabled(self, flag: str, user_id: Optional[str] = None) -> bool:

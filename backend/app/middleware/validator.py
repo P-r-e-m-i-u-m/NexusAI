@@ -19,18 +19,25 @@ SSRF_PATTERNS = re.compile(
     r"(169\.254\.|127\.|10\.|192\.168\.|localhost|metadata\.google|169\.254\.169\.254)"
 )
 ALLOWED_MIME_TYPES = {
-    "application/pdf", "text/plain", "text/markdown",
+    "application/pdf",
+    "text/plain",
+    "text/markdown",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "audio/mpeg", "audio/wav", "audio/mp4", "audio/ogg",
-    "image/jpeg", "image/png", "image/gif",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/mp4",
+    "audio/ogg",
+    "image/jpeg",
+    "image/png",
+    "image/gif",
 }
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 MB
 
 
 def sanitize_string(value: str) -> str:
     if SQL_PATTERNS.search(value):
-        raise ValueError(f"Potentially malicious SQL pattern detected")
+        raise ValueError("Potentially malicious SQL pattern detected")
     if XSS_PATTERNS.search(value):
         raise ValueError("Potentially malicious HTML/XSS pattern detected")
     return value.strip()

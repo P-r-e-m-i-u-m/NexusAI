@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, Boolean, Integer, Float, JSON, ForeignKey, Enum
+from sqlalchemy import Column, String, Text, Boolean, Integer, JSON, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 import enum
 
@@ -22,7 +22,9 @@ class User(BaseModel):
     api_key = Column(String(64), unique=True, index=True)
 
     agents = relationship("Agent", back_populates="owner", cascade="all, delete-orphan")
-    workflows = relationship("Workflow", back_populates="owner", cascade="all, delete-orphan")
+    workflows = relationship(
+        "Workflow", back_populates="owner", cascade="all, delete-orphan"
+    )
 
 
 class Agent(BaseModel):
@@ -49,20 +51,22 @@ class Workflow(BaseModel):
 
     name = Column(String(100), nullable=False)
     description = Column(Text)
-    graph = Column(JSON, default=dict)   # node/edge definition for visual builder
+    graph = Column(JSON, default=dict)  # node/edge definition for visual builder
     status = Column(String(20), default="draft")
     is_active = Column(Boolean, default=True)
     owner_id = Column(String, ForeignKey("users.id"), nullable=False)
 
     owner = relationship("User", back_populates="workflows")
-    runs = relationship("WorkflowRun", back_populates="workflow", cascade="all, delete-orphan")
+    runs = relationship(
+        "WorkflowRun", back_populates="workflow", cascade="all, delete-orphan"
+    )
 
 
 class WorkflowRun(BaseModel):
     __tablename__ = "workflow_runs"
 
     workflow_id = Column(String, ForeignKey("workflows.id"), nullable=False)
-    status = Column(String(20), default="pending")   # pending|running|success|failed
+    status = Column(String(20), default="pending")  # pending|running|success|failed
     input_data = Column(JSON, default=dict)
     output_data = Column(JSON, default=dict)
     error = Column(Text)
@@ -92,7 +96,9 @@ class KnowledgeBase(BaseModel):
     description = Column(Text)
     owner_id = Column(String, ForeignKey("users.id"), nullable=False)
 
-    documents = relationship("Document", back_populates="kb", cascade="all, delete-orphan")
+    documents = relationship(
+        "Document", back_populates="kb", cascade="all, delete-orphan"
+    )
 
 
 class Document(BaseModel):

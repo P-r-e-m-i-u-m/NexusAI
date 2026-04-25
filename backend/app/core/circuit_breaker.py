@@ -1,5 +1,4 @@
 import time
-import asyncio
 from enum import Enum
 from typing import Callable, Any, Optional
 from app.core.logging import logger
@@ -43,14 +42,16 @@ class CircuitBreaker:
 
         if self.state == CircuitState.HALF_OPEN:
             if self.half_open_calls >= self.half_open_max_calls:
-                raise Exception(f"Circuit breaker HALF-OPEN limit reached for {self.name}")
+                raise Exception(
+                    f"Circuit breaker HALF-OPEN limit reached for {self.name}"
+                )
             self.half_open_calls += 1
 
         try:
             result = await func(*args, **kwargs)
             self._on_success()
             return result
-        except Exception as e:
+        except Exception:
             self._on_failure()
             raise
 
@@ -64,7 +65,9 @@ class CircuitBreaker:
         self.last_failure_time = time.time()
         if self.failure_count >= self.failure_threshold:
             self.state = CircuitState.OPEN
-            logger.warning("circuit_opened", service=self.name, failures=self.failure_count)
+            logger.warning(
+                "circuit_opened", service=self.name, failures=self.failure_count
+            )
 
     @property
     def status(self) -> dict:

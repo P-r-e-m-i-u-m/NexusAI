@@ -1,4 +1,3 @@
-import time
 import redis.asyncio as aioredis
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -21,7 +20,9 @@ class BruteForceMiddleware(BaseHTTPMiddleware):
 
     async def get_redis(self):
         if not self._redis:
-            self._redis = await aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+            self._redis = await aioredis.from_url(
+                settings.REDIS_URL, decode_responses=True
+            )
         return self._redis
 
     async def dispatch(self, request: Request, call_next):
@@ -37,7 +38,10 @@ class BruteForceMiddleware(BaseHTTPMiddleware):
             ttl = await r.ttl(block_key)
             return JSONResponse(
                 status_code=429,
-                content={"error": "IP temporarily blocked due to too many failed attempts", "retry_after": ttl},
+                content={
+                    "error": "IP temporarily blocked due to too many failed attempts",
+                    "retry_after": ttl,
+                },
                 headers={"Retry-After": str(ttl)},
             )
 

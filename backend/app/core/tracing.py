@@ -11,12 +11,21 @@ _tracer = None
 
 def setup_tracing(app=None):
     global _tracer
-    resource = Resource.create({"service.name": "nexusai-backend", "service.version": "1.0.0"})
+    resource = Resource.create(
+        {"service.name": "nexusai-backend", "service.version": "1.0.0"}
+    )
     provider = TracerProvider(resource=resource)
 
     try:
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-        exporter = OTLPSpanExporter(endpoint=getattr(settings, "JAEGER_ENDPOINT", "http://localhost:4318/v1/traces"))
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+            OTLPSpanExporter,
+        )
+
+        exporter = OTLPSpanExporter(
+            endpoint=getattr(
+                settings, "JAEGER_ENDPOINT", "http://localhost:4318/v1/traces"
+            )
+        )
         provider.add_span_processor(BatchSpanProcessor(exporter))
         logger.info("tracing_initialized", exporter="otlp")
     except Exception as e:

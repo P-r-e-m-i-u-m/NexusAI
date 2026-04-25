@@ -18,9 +18,11 @@ engine = create_async_engine(
 )
 
 AsyncSessionLocal = async_sessionmaker(
-    engine, class_=AsyncSession,
+    engine,
+    class_=AsyncSession,
     expire_on_commit=False,
-    autoflush=True, autocommit=False,
+    autoflush=True,
+    autocommit=False,
 )
 
 
@@ -32,7 +34,9 @@ class BaseModel(Base):
     __abstract__ = True
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 async def get_db():
