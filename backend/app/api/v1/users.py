@@ -12,4 +12,7 @@ router = APIRouter()
 async def list_users(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User))
     users = result.scalars().all()
-    return [{"id": u.id, "email": u.email, "username": u.username, "role": u.role} for u in users]
+    return [
+        {"id": u.id, "email": u.email, "username": u.username, "role": u.role}
+        for u in users
+    ]

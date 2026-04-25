@@ -1,7 +1,5 @@
-import json
-from datetime import datetime
-from typing import Any, Optional
-from sqlalchemy import Column, String, Text, JSON
+from typing import Optional
+from sqlalchemy import Column, String, JSON
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import BaseModel
 from app.core.logging import logger

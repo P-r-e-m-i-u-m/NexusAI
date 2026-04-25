@@ -9,7 +9,9 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://nexusai:nexusai_secret@localhost:5432/nexusai"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://nexusai:nexusai_secret@localhost:5432/nexusai"
+    )
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"

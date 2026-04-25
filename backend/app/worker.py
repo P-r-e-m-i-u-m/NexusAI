@@ -18,6 +18,7 @@ celery_app.conf.update(
 def process_document_task(self, kb_id: str, filepath: str, filename: str):
     import asyncio
     from app.rag.pipeline import ingest_document
+
     try:
         loop = asyncio.get_event_loop()
         result = loop.run_until_complete(ingest_document(kb_id, filepath, filename))
@@ -28,5 +29,4 @@ def process_document_task(self, kb_id: str, filepath: str, filename: str):
 
 @celery_app.task(bind=True, max_retries=3)
 def run_workflow_task(self, workflow_id: str, input_data: dict):
-    import asyncio
     return {"workflow_id": workflow_id, "status": "completed", "input": input_data}

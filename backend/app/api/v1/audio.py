@@ -22,13 +22,18 @@ async def transcribe_audio(
 ):
     audio_bytes = await file.read()
     result = await transcribe_from_bytes(
-        audio_bytes, file.filename,
-        model_size=model_size, language=language, translate=translate,
+        audio_bytes,
+        file.filename,
+        model_size=model_size,
+        language=language,
+        translate=translate,
     )
     return result
 
 
 @router.get("/models")
 async def list_models():
-    return {"models": ["tiny", "base", "small", "medium", "large"],
-            "note": "larger = slower but more accurate"}
+    return {
+        "models": ["tiny", "base", "small", "medium", "large"],
+        "note": "larger = slower but more accurate",
+    }

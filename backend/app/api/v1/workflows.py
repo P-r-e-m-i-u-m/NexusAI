@@ -29,7 +29,12 @@ async def list_workflows(db: AsyncSession = Depends(get_db)):
 
 @router.post("/", status_code=201)
 async def create_workflow(data: WorkflowCreate, db: AsyncSession = Depends(get_db)):
-    wf = Workflow(name=data.name, description=data.description, graph=data.graph, owner_id="system")
+    wf = Workflow(
+        name=data.name,
+        description=data.description,
+        graph=data.graph,
+        owner_id="system",
+    )
     db.add(wf)
     await db.flush()
     return {"id": wf.id, "name": wf.name}
@@ -45,7 +50,9 @@ async def get_workflow(wf_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{wf_id}")
-async def update_workflow(wf_id: str, data: WorkflowCreate, db: AsyncSession = Depends(get_db)):
+async def update_workflow(
+    wf_id: str, data: WorkflowCreate, db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(select(Workflow).where(Workflow.id == wf_id))
     wf = result.scalar_one_or_none()
     if not wf:
@@ -57,7 +64,9 @@ async def update_workflow(wf_id: str, data: WorkflowCreate, db: AsyncSession = D
 
 
 @router.post("/{wf_id}/run")
-async def run_workflow(wf_id: str, body: WorkflowRun_, db: AsyncSession = Depends(get_db)):
+async def run_workflow(
+    wf_id: str, body: WorkflowRun_, db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(select(Workflow).where(Workflow.id == wf_id))
     wf = result.scalar_one_or_none()
     if not wf:
@@ -71,6 +80,10 @@ async def run_workflow(wf_id: str, body: WorkflowRun_, db: AsyncSession = Depend
 
 @router.get("/{wf_id}/runs")
 async def get_runs(wf_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(WorkflowRun).where(WorkflowRun.workflow_id == wf_id))
+    result = await db.execute(
+        select(WorkflowRun).where(WorkflowRun.workflow_id == wf_id)
+    )
     runs = result.scalars().all()
-    return [{"id": r.id, "status": r.status, "created_at": str(r.created_at)} for r in runs]
+    return [
+        {"id": r.id, "status": r.status, "created_at": str(r.created_at)} for r in runs
+    ]

@@ -3,14 +3,13 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
-from typing import List, Optional, Dict
+from typing import List, Dict
 import json
 
 from app.db.session import get_db
-from app.models.models import Agent, Task
+from app.models.models import Agent
 from app.agents.engine import AgentConfig, TaskConfig, Crew, AgentExecutor
 from app.agents.dev_agent import AIDeveloperAgent
-from app.core.security import require_permission
 
 router = APIRouter()
 
@@ -40,15 +39,22 @@ class DevTaskRequest(BaseModel):
 async def list_agents(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Agent))
     agents = result.scalars().all()
-    return [{"id": a.id, "name": a.name, "role": a.role, "provider": a.provider} for a in agents]
+    return [
+        {"id": a.id, "name": a.name, "role": a.role, "provider": a.provider}
+        for a in agents
+    ]
 
 
 @router.post("/", status_code=201)
 async def create_agent(data: AgentCreate, db: AsyncSession = Depends(get_db)):
     agent = Agent(
-        name=data.name, role=data.role, goal=data.goal,
-        backstory=data.backstory, model=data.model,
-        provider=data.provider, tools=data.tools,
+        name=data.name,
+        role=data.role,
+        goal=data.goal,
+        backstory=data.backstory,
+        model=data.model,
+        provider=data.provider,
+        tools=data.tools,
         owner_id="system",
     )
     db.add(agent)
@@ -64,8 +70,12 @@ async def run_agent(agent_id: str, body: Dict, db: AsyncSession = Depends(get_db
         raise HTTPException(404, "Agent not found")
 
     config = AgentConfig(
-        name=agent.name, role=agent.role, goal=agent.goal,
-        backstory=agent.backstory, model=agent.model, provider=agent.provider,
+        name=agent.name,
+        role=agent.role,
+        goal=agent.goal,
+        backstory=agent.backstory,
+        model=agent.model,
+        provider=agent.provider,
     )
     executor = AgentExecutor(config)
     result_text = await executor.run(body.get("task", ""))
@@ -80,8 +90,12 @@ async def stream_agent(agent_id: str, body: Dict, db: AsyncSession = Depends(get
         raise HTTPException(404, "Agent not found")
 
     config = AgentConfig(
-        name=agent.name, role=agent.role, goal=agent.goal,
-        backstory=agent.backstory, model=agent.model, provider=agent.provider,
+        name=agent.name,
+        role=agent.role,
+        goal=agent.goal,
+        backstory=agent.backstory,
+        model=agent.model,
+        provider=agent.provider,
     )
     executor = AgentExecutor(config)
 
