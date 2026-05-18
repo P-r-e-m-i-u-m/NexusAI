@@ -18,8 +18,15 @@ const nav = [
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
-export function Sidebar() {
+type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export function Sidebar({ open, onOpenChange }: Props) {
   const path = usePathname();
+
+  if (!open) return null;
 
   return (
     <aside className="w-56 flex-shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col">
