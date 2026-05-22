@@ -1,6 +1,11 @@
 import pytest
 import asyncio
+import sys
+from pathlib import Path
 from httpx import AsyncClient, ASGITransport
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from app.main import app
 
 

@@ -19,11 +19,11 @@ const nav = [
 ];
 
 type Props = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
-export function Sidebar({ open, onOpenChange }: Props) {
+export function Sidebar({ open = true }: Props) {
   const path = usePathname();
 
   if (!open) return null;

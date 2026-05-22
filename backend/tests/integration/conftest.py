@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from typing import AsyncGenerator
+import os
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import NullPool
@@ -9,7 +9,10 @@ from unittest.mock import AsyncMock, patch
 from app.main import app
 from app.db.session import Base, get_db
 
-TEST_DB_URL = "postgresql+asyncpg://nexusai:nexusai_secret@localhost:5432/nexusai_test"
+TEST_DB_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://nexusai:nexusai_secret@localhost:5432/nexusai_test",
+)
 
 test_engine = create_async_engine(TEST_DB_URL, poolclass=NullPool)
 TestSession = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
