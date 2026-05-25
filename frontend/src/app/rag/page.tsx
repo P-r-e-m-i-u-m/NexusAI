@@ -5,6 +5,7 @@ import { Database, Upload, Search, Plus, FileText } from "lucide-react";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
 
 export default function RAGPage() {
   const qc = useQueryClient();
@@ -13,11 +14,16 @@ export default function RAGPage() {
   const [answer, setAnswer] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [kbName, setKbName] = useState("");
+  const [queryError, setQueryError] = useState("");
 
-  const { data: kbs = [] } = useQuery({
-    queryKey: ["kbs"],
-    queryFn: () => api.post("/api/v1/rag/kb", { name: "__list__" }).then(() => []).catch(() => []),
+  const documentsQuery = useQuery({
+    queryKey: ["kb-documents", selectedKb],
+    queryFn: () => api.get(`/api/v1/rag/kb/${selectedKb}/documents`).then(r => r.data),
+    enabled: Boolean(selectedKb),
   });
+  const documents = documentsQuery.data ?? [];
+  const showDocumentsLoading = useMinimumLoading(documentsQuery.isLoading);
+  const showAnswerLoading = useMinimumLoading(loading);
 
   const createKb = async () => {
     if (!kbName) return;
@@ -35,6 +41,7 @@ export default function RAGPage() {
     formData.append("file", e.target.files[0]);
     try {
       const res = await api.post(`/api/v1/rag/kb/${selectedKb}/upload`, formData);
+      qc.invalidateQueries({ queryKey: ["kb-documents", selectedKb] });
       toast.success(`Indexed ${res.data.chunks} chunks from ${res.data.filename}`);
     } catch { toast.error("Upload failed"); }
   };
@@ -42,10 +49,14 @@ export default function RAGPage() {
   const query = async () => {
     if (!selectedKb || !question) return;
     setLoading(true);
+    setQueryError("");
     try {
       const res = await api.post(`/api/v1/rag/kb/${selectedKb}/query`, { question, provider: "nvidia" });
       setAnswer(res.data);
-    } catch { toast.error("Query failed"); }
+    } catch {
+      setQueryError("Unable to query this knowledge base. Please try again.");
+      toast.error("Query failed");
+    }
     finally { setLoading(false); }
   };
 
@@ -83,6 +94,46 @@ export default function RAGPage() {
                 </label>
               </div>
             )}
+
+            {selectedKb && (
+              <div className="mt-4 pt-4 border-t border-gray-800">
+                <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
+                  <FileText size={12} /> Documents
+                </p>
+                {showDocumentsLoading ? (
+                  <div className="space-y-2">
+                    {[0, 1, 2].map((item) => (
+                      <div key={item} className="rounded-lg bg-gray-800 p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-5 w-14 rounded-full" />
+                        </div>
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    ))}
+                  </div>
+                ) : documentsQuery.isError ? (
+                  <p className="text-xs text-red-400">Unable to load documents.</p>
+                ) : documents.length === 0 ? (
+                  <p className="text-xs text-gray-500">No documents uploaded yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {documents.map((doc: any) => (
+                      <div key={doc.id} className="rounded-lg bg-gray-800 p-3 text-xs">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="flex min-w-0 items-center gap-1 text-gray-300">
+                            <FileText size={12} className="flex-shrink-0 text-indigo-400" />
+                            <span className="truncate">{doc.filename}</span>
+                          </span>
+                          <span className="rounded-full bg-gray-700 px-2 py-0.5 text-gray-300">{doc.status}</span>
+                        </div>
+                        <p className="text-gray-500">{doc.chunks} chunks indexed</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Query */}
@@ -108,7 +159,37 @@ export default function RAGPage() {
                   </button>
                 </div>
 
-                {answer && (
+                {showAnswerLoading && (
+                  <div className="space-y-3">
+                    <div className="p-4 bg-gray-800 rounded-lg">
+                      <Skeleton className="h-3 w-16 mb-3" />
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-11/12 mb-2" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </div>
+                    <div>
+                      <Skeleton className="h-3 w-14 mb-2" />
+                      {[0, 1].map((item) => (
+                        <div key={item} className="p-3 bg-gray-800 rounded-lg mb-2">
+                          <div className="flex justify-between mb-2">
+                            <Skeleton className="h-3 w-32" />
+                            <Skeleton className="h-3 w-8" />
+                          </div>
+                          <Skeleton className="h-3 w-full mb-1" />
+                          <Skeleton className="h-3 w-3/4" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {queryError && !showAnswerLoading && (
+                  <div className="rounded-lg border border-red-900/60 bg-red-950/30 p-4 text-sm text-red-300">
+                    {queryError}
+                  </div>
+                )}
+
+                {!showAnswerLoading && answer && (
                   <div className="space-y-3">
                     <div className="p-4 bg-gray-800 rounded-lg">
                       <p className="text-xs text-indigo-400 mb-2 font-medium">Answer</p>

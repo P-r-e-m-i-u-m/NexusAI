@@ -5,6 +5,7 @@ import { Bot, Plus, Play, Trash2, Zap } from "lucide-react";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
 
 function AgentModal({ onClose, onSave }: any) {
   const [form, setForm] = useState({
@@ -109,15 +110,31 @@ function RunModal({ agent, onClose }: any) {
   );
 }
 
+function AgentCardSkeleton() {
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div className="flex items-start justify-between mb-3">
+        <Skeleton className="h-10 w-10 rounded-lg" />
+        <Skeleton className="h-6 w-16 rounded-full" />
+      </div>
+      <Skeleton className="h-5 w-36" />
+      <Skeleton className="h-4 w-28 mt-2" />
+      <Skeleton className="h-7 w-full mt-4 rounded-lg" />
+    </div>
+  );
+}
+
 export default function AgentsPage() {
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [runAgent, setRunAgent] = useState<any>(null);
 
-  const { data: agents = [] } = useQuery({
+  const agentsQuery = useQuery({
     queryKey: ["agents"],
     queryFn: () => api.get("/api/v1/agents/").then(r => r.data),
   });
+  const agents = agentsQuery.data ?? [];
+  const showLoading = useMinimumLoading(agentsQuery.isLoading);
 
   const create = useMutation({
     mutationFn: (data: any) => api.post("/api/v1/agents/", data),
@@ -140,7 +157,15 @@ export default function AgentsPage() {
           </button>
         </div>
 
-        {agents.length === 0 ? (
+        {showLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[0, 1, 2, 3, 4, 5].map((item) => <AgentCardSkeleton key={item} />)}
+          </div>
+        ) : agentsQuery.isError ? (
+          <div className="rounded-xl border border-red-900/60 bg-red-950/30 p-5 text-sm text-red-300">
+            Unable to load agents. Please check the API connection and try again.
+          </div>
+        ) : agents.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
             <Bot size={48} className="mx-auto mb-3 opacity-30" />
             <p>No agents yet. Create your first one!</p>

@@ -36,3 +36,15 @@ body { @apply bg-gray-950 text-gray-100 antialiased; }
 /* React Flow */
 .react-flow__node { font-family: inherit; }
 .react-flow__edge-path { stroke: #6366f1; }
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-shimmer {
+  background-image: linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 50%, #2a2a2a 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
+  will-change: background-position;
+}

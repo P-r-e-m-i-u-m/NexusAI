@@ -25,7 +25,13 @@ api.interceptors.response.use(
 );
 
 // SSE streaming helper
-export function streamChat(messages: any[], provider = "nvidia", onToken: (t: string) => void, onDone: () => void) {
+export function streamChat(
+  messages: any[],
+  provider = "nvidia",
+  onToken: (t: string) => void,
+  onDone: () => void,
+  onError?: (message: string) => void,
+) {
   const token = localStorage.getItem("nexusai_token");
   const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/llm/chat`;
 
@@ -37,6 +43,9 @@ export function streamChat(messages: any[], provider = "nvidia", onToken: (t: st
     },
     body: JSON.stringify({ messages, provider, stream: true }),
   }).then(async (res) => {
+    if (!res.ok || !res.body) {
+      throw new Error("Chat request failed");
+    }
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
     while (true) {
@@ -54,6 +63,9 @@ export function streamChat(messages: any[], provider = "nvidia", onToken: (t: st
         }
       }
     }
+    onDone();
+  }).catch((error) => {
+    onError?.(error?.message || "Chat request failed");
     onDone();
   });
 }
