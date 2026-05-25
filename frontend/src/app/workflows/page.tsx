@@ -10,6 +10,7 @@ import { GitBranch, Plus, Save, Play } from "lucide-react";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
 
 const NODE_TYPES_LIST = [
   { type: "llm", label: "LLM Call", color: "bg-indigo-600" },
@@ -22,6 +23,19 @@ const NODE_TYPES_LIST = [
 
 let nodeId = 1;
 
+function WorkflowListSkeleton() {
+  return (
+    <div className="space-y-2">
+      {[0, 1, 2, 3].map((item) => (
+        <div key={item} className="flex items-center justify-between">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-4 rounded" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function WorkflowsPage() {
   const qc = useQueryClient();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -29,10 +43,12 @@ export default function WorkflowsPage() {
   const [wfName, setWfName] = useState("My Workflow");
   const [selectedWf, setSelectedWf] = useState<any>(null);
 
-  const { data: workflows = [] } = useQuery({
+  const workflowsQuery = useQuery({
     queryKey: ["workflows"],
     queryFn: () => api.get("/api/v1/workflows/").then(r => r.data),
   });
+  const workflows = workflowsQuery.data ?? [];
+  const showWorkflowsLoading = useMinimumLoading(workflowsQuery.isLoading);
 
   const onConnect = useCallback((params: Connection) => {
     setEdges(eds => addEdge({ ...params, animated: true, style: { stroke: "#6366f1" } }, eds));
@@ -102,14 +118,22 @@ export default function WorkflowsPage() {
 
             <div className="mt-6 pt-4 border-t border-gray-800">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Saved</p>
-              {workflows.map((wf: any) => (
-                <div key={wf.id} className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-400 truncate flex-1">{wf.name}</span>
-                  <button onClick={() => runWf(wf.id)} className="text-indigo-400 hover:text-indigo-300 ml-2">
-                    <Play size={11} />
-                  </button>
-                </div>
-              ))}
+              {showWorkflowsLoading ? (
+                <WorkflowListSkeleton />
+              ) : workflowsQuery.isError ? (
+                <p className="text-xs text-red-400">Unable to load workflows.</p>
+              ) : workflows.length === 0 ? (
+                <p className="text-xs text-gray-500">No saved workflows.</p>
+              ) : (
+                workflows.map((wf: any) => (
+                  <div key={wf.id} className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-400 truncate flex-1">{wf.name}</span>
+                    <button onClick={() => runWf(wf.id)} className="text-indigo-400 hover:text-indigo-300 ml-2">
+                      <Play size={11} />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

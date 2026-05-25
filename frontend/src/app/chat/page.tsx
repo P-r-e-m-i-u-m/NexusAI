@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Zap } from "lucide-react";
 import { streamChat } from "@/lib/api";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
 
 interface Message { role: "user" | "assistant"; content: string; }
 
@@ -11,7 +12,13 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [provider, setProvider] = useState("nvidia");
+  const [errorMessage, setErrorMessage] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const waitingForAssistant =
+    streaming &&
+    messages[messages.length - 1]?.role === "assistant" &&
+    messages[messages.length - 1]?.content.length === 0;
+  const showMessageSkeleton = useMinimumLoading(waitingForAssistant);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
@@ -22,6 +29,7 @@ export default function ChatPage() {
     setMessages(allMsgs);
     setInput("");
     setStreaming(true);
+    setErrorMessage("");
 
     const assistantMsg: Message = { role: "assistant", content: "" };
     setMessages(m => [...m, assistantMsg]);
@@ -35,6 +43,10 @@ export default function ChatPage() {
         return copy;
       }),
       () => setStreaming(false),
+      (message) => {
+        setErrorMessage(message);
+        setMessages(m => m.filter((msg, index) => index !== m.length - 1 || msg.content));
+      },
     );
   };
 
@@ -68,13 +80,26 @@ export default function ChatPage() {
               <p className="text-xs text-gray-600 mt-1">Connected to NVIDIA · {provider}</p>
             </div>
           )}
+          {errorMessage && (
+            <div className="rounded-xl border border-red-900/60 bg-red-950/30 p-4 text-sm text-red-300">
+              {errorMessage}
+            </div>
+          )}
           {messages.map((msg, i) => (
             <div key={i} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
               <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === "user" ? "bg-indigo-600" : "bg-gray-700"}`}>
                 {msg.role === "user" ? <User size={14} className="text-white" /> : <Bot size={14} className="text-gray-300" />}
               </div>
               <div className={`max-w-2xl px-4 py-3 rounded-xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-200"}`}>
-                {msg.content}
+                {showMessageSkeleton && i === messages.length - 1 && msg.role === "assistant" ? (
+                  <div className="w-64 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-10/12" />
+                    <Skeleton className="h-4 w-7/12" />
+                  </div>
+                ) : (
+                  msg.content
+                )}
                 {streaming && i === messages.length - 1 && msg.role === "assistant" && (
                   <span className="inline-block w-1 h-4 bg-gray-400 ml-1 animate-pulse" />
                 )}
