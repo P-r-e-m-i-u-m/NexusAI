@@ -6,11 +6,13 @@ import {
   Globe,
   Copy,
   Download,
+  Clock,
   Upload,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
 
 type Segment = {
   start: number;
@@ -25,13 +27,44 @@ type TranscriptionResult = {
   segments?: Segment[];
 };
 
+type TranscriptionHistoryItem = TranscriptionResult & {
+  id: number;
+  filename: string;
+};
+
+function TranscriptionHistorySkeleton() {
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Skeleton className="h-4 w-4 rounded" />
+        <Skeleton className="h-4 w-36" />
+      </div>
+      <div className="space-y-3">
+        {[0, 1, 2].map((item) => (
+          <div key={item} className="rounded-lg border border-gray-800 bg-gray-950 p-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+            <Skeleton className="mb-2 h-3 w-full" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AudioPage() {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<TranscriptionResult | null>(null);
+  const [history, setHistory] = useState<TranscriptionHistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [modelSize, setModelSize] = useState("base");
   const [translate, setTranslate] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const showTranscriptionSkeleton = useMinimumLoading(loading);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -104,6 +137,7 @@ export default function AudioPage() {
     }
 
     setLoading(true);
+    setErrorMessage("");
     const fd = new FormData();
     fd.append("file", file);
 
@@ -113,11 +147,20 @@ export default function AudioPage() {
         fd
       );
       setResult(res.data);
+      setHistory((items) => [
+        {
+          ...res.data,
+          id: Date.now(),
+          filename: file.name,
+        },
+        ...items,
+      ]);
       toast.success("Transcription complete!");
     } catch (error: any) {
       const message =
         error?.response?.data?.detail ||
         "Transcription failed. Please make sure the backend is running.";
+      setErrorMessage(message);
       toast.error(message);
     } finally {
       setLoading(false);
@@ -212,7 +255,8 @@ ${segment.text.trim()}
           </p>
         </div>
 
-        <div className="max-w-3xl">
+        <div className="grid max-w-6xl grid-cols-1 gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(280px,1fr)]">
+          <div>
           <div className="mb-4 rounded-xl border border-gray-800 bg-gray-900 p-6">
             {/* Upload */}
             <div
@@ -310,24 +354,51 @@ ${segment.text.trim()}
               className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Transcribing..." : "Transcribe"}
-              {loading && (
-                <div className="mt-4 rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-4">
-                  <div className="mb-2 flex items-center justify-between text-xs text-indigo-300">
-                    <span>Transcription in progress...</span>
-                    <span>Processing...</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-800">
-                  <div className="h-full w-full animate-pulse rounded-full bg-indigo-500" />
-                </div>
-                  <p className="mt-2 text-xs text-gray-400">
-                    Processing audio...
-                  </p>
-                </div>
-              )}
             </button>
           </div>
 
-          {result && (
+          {errorMessage && !showTranscriptionSkeleton && (
+            <div className="mb-4 rounded-xl border border-red-900/60 bg-red-950/30 p-4 text-sm text-red-300">
+              {errorMessage}
+            </div>
+          )}
+
+          {showTranscriptionSkeleton && (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-3 w-40" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Skeleton className="h-8 w-20 rounded-lg" />
+                  <Skeleton className="h-8 w-16 rounded-lg" />
+                  <Skeleton className="h-8 w-16 rounded-lg" />
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-gray-800 bg-gray-950 p-4">
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-11/12 mb-2" />
+                <Skeleton className="h-4 w-4/5 mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+
+              <div className="mt-4 border-t border-gray-800 pt-4">
+                <Skeleton className="h-3 w-32 mb-2" />
+                <div className="space-y-2 rounded-lg border border-gray-800 bg-gray-950 p-3">
+                  {[0, 1, 2].map((item) => (
+                    <div key={item} className="flex gap-3">
+                      <Skeleton className="h-4 w-24 flex-shrink-0" />
+                      <Skeleton className="h-4 flex-1" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!showTranscriptionSkeleton && result && (
             <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
               <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -393,6 +464,48 @@ ${segment.text.trim()}
               )}
             </div>
           )}
+          </div>
+
+          <aside>
+            {showTranscriptionSkeleton ? (
+              <TranscriptionHistorySkeleton />
+            ) : (
+              <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+                <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-300">
+                  <Clock size={14} className="text-indigo-400" />
+                  Transcription History
+                </h2>
+                {history.length === 0 ? (
+                  <div className="rounded-lg border border-gray-800 bg-gray-950 p-4 text-sm text-gray-500">
+                    Completed transcriptions will appear here.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {history.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setResult(item)}
+                        className="w-full rounded-lg border border-gray-800 bg-gray-950 p-4 text-left transition-colors hover:border-gray-700 hover:bg-gray-900"
+                      >
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <span className="truncate text-sm font-medium text-gray-200">
+                            {item.filename}
+                          </span>
+                          <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
+                            {item.model}
+                          </span>
+                        </div>
+                        <p className="line-clamp-2 text-xs leading-relaxed text-gray-500">
+                          {item.text}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </aside>
         </div>
       </main>
     </div>
