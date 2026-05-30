@@ -52,7 +52,7 @@ export default function RAGPage() {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-950">
       <Sidebar />
-      <main className="flex-1 overflow-auto p-8">
+      <main id="main-content" className="flex-1 overflow-auto p-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">Knowledge Base</h1>
           <p className="text-gray-400 text-sm mt-1">Upload documents and query with RAG</p>

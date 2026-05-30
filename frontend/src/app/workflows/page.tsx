@@ -67,7 +67,7 @@ export default function WorkflowsPage() {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-950">
       <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main id="main-content" className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
