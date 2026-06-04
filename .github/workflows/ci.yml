@@ -42,6 +42,7 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           JWT_SECRET: test_jwt_secret
+          PYTHONPATH: .
         run: |
           cd backend
           pytest tests/ -v --cov=app --cov-report=xml
