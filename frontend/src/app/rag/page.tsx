@@ -81,14 +81,14 @@ export default function RAGPage() {
               value={kbName}
               onChange={e => setKbName(e.target.value)}
             />
-            <button onClick={createKb} className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white">
+            <button onClick={createKb} className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">
               Create
             </button>
 
             {selectedKb && (
               <div className="mt-4 pt-4 border-t border-gray-800">
                 <p className="text-xs text-gray-400 mb-2">Upload to selected KB</p>
-                <label className="flex items-center gap-2 py-2 px-3 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer text-sm text-gray-300">
+                <label className="flex items-center gap-2 py-2 px-3 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer text-sm text-gray-300 active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">
                   <Upload size={14} /> Upload Document
                   <input type="file" className="hidden" accept=".pdf,.txt,.md,.docx" onChange={uploadFile} />
                 </label>
@@ -154,7 +154,7 @@ export default function RAGPage() {
                     onKeyDown={e => e.key === "Enter" && query()}
                   />
                   <button onClick={query} disabled={loading || !question}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white disabled:opacity-50">
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white disabled:opacity-50 active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">
                     {loading ? "..." : "Ask"}
                   </button>
                 </div>

@@ -1,9 +1,25 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Zap } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { streamChat } from "@/lib/api";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
+
+const TypingIndicator = () => {
+  const shouldReduceMotion = useReducedMotion();
+  return (
+  <div className="flex gap-1 items-center h-5 px-1">
+    {[0, 1, 2].map((i) => (
+      <motion.div
+        key={i}
+        className="w-1.5 h-1.5 bg-gray-400 rounded-full"
+        animate={shouldReduceMotion ? { opacity: [0.5, 1, 0.5] } : { y: [0, -4, 0] }}
+        transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+      />
+    ))}
+  </div>
+)};
 
 interface Message { role: "user" | "assistant"; content: string; }
 
@@ -101,7 +117,7 @@ export default function ChatPage() {
                   msg.content
                 )}
                 {streaming && i === messages.length - 1 && msg.role === "assistant" && (
-                  <span className="inline-block w-1 h-4 bg-gray-400 ml-1 animate-pulse" />
+                  <div className="mt-1"><TypingIndicator /></div>
                 )}
               </div>
             </div>
@@ -123,7 +139,7 @@ export default function ChatPage() {
             <button
               onClick={send}
               disabled={!input.trim() || streaming}
-              className="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 rounded-xl flex items-center justify-center"
+              className="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 rounded-xl flex items-center justify-center active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none"
             >
               <Send size={16} className="text-white" />
             </button>

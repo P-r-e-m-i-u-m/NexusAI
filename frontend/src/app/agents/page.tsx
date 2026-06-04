@@ -2,20 +2,28 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bot, Plus, Play, Trash2, Zap } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
 
 function AgentModal({ onClose, onSave }: any) {
+  const shouldReduceMotion = useReducedMotion();
   const [form, setForm] = useState({
     name: "", role: "", goal: "", backstory: "",
     model: "openai/gpt-oss-120b", provider: "nvidia",
   });
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+    <motion.div
+      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }} animate={{ opacity: 1 }} exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+    >
+      <motion.div
+        initial={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.95, opacity: 0 }}
+        className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg"
+      >
         <h2 className="text-lg font-bold text-white mb-4">New Agent</h2>
         <div className="space-y-3">
           {[
@@ -58,15 +66,16 @@ function AgentModal({ onClose, onSave }: any) {
           </div>
         </div>
         <div className="flex gap-3 mt-5">
-          <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-gray-700 text-sm text-gray-400 hover:bg-gray-800">Cancel</button>
-          <button onClick={() => onSave(form)} className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm text-white font-medium">Create Agent</button>
+          <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-gray-700 text-sm text-gray-400 hover:bg-gray-800 active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">Cancel</button>
+          <button onClick={() => onSave(form)} className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm text-white font-medium active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">Create Agent</button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
 function RunModal({ agent, onClose }: any) {
+  const shouldReduceMotion = useReducedMotion();
   const [task, setTask] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,8 +93,14 @@ function RunModal({ agent, onClose }: any) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+    <motion.div
+      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }} animate={{ opacity: 1 }} exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+    >
+      <motion.div
+        initial={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.95, opacity: 0 }}
+        className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg"
+      >
         <h2 className="text-lg font-bold text-white mb-1">Run Agent</h2>
         <p className="text-sm text-gray-400 mb-4">{agent.name} · {agent.role}</p>
         <textarea
@@ -100,13 +115,13 @@ function RunModal({ agent, onClose }: any) {
           </div>
         )}
         <div className="flex gap-3 mt-4">
-          <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-gray-700 text-sm text-gray-400 hover:bg-gray-800">Close</button>
-          <button onClick={run} disabled={loading || !task} className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm text-white font-medium disabled:opacity-50">
+          <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-gray-700 text-sm text-gray-400 hover:bg-gray-800 active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">Close</button>
+          <button onClick={run} disabled={loading || !task} className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm text-white font-medium disabled:opacity-50 active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">
             {loading ? "Running..." : "Run"}
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -152,7 +167,7 @@ export default function AgentsPage() {
             <p className="text-gray-400 text-sm mt-1">Create and manage AI agents</p>
           </div>
           <button onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white font-medium">
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white font-medium active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">
             <Plus size={16} /> New Agent
           </button>
         </div>
@@ -173,7 +188,7 @@ export default function AgentsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {agents.map((agent: any) => (
-              <div key={agent.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div key={agent.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 transition-all motion-reduce:transition-none motion-reduce:transform-none duration-200 hover:-translate-y-1 hover:shadow-lg">
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-10 h-10 rounded-lg bg-indigo-900 flex items-center justify-center">
                     <Bot size={20} className="text-indigo-400" />
@@ -184,7 +199,7 @@ export default function AgentsPage() {
                 <p className="text-sm text-gray-400 mt-1">{agent.role}</p>
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => setRunAgent(agent)}
-                    className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs text-white">
+                    className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs text-white active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">
                     <Play size={12} /> Run
                   </button>
                 </div>
@@ -193,8 +208,12 @@ export default function AgentsPage() {
           </div>
         )}
 
-        {showCreate && <AgentModal onClose={() => setShowCreate(false)} onSave={(d: any) => create.mutate(d)} />}
-        {runAgent && <RunModal agent={runAgent} onClose={() => setRunAgent(null)} />}
+        <AnimatePresence>
+          {showCreate && <AgentModal onClose={() => setShowCreate(false)} onSave={(d: any) => create.mutate(d)} />}
+        </AnimatePresence>
+        <AnimatePresence>
+          {runAgent && <RunModal agent={runAgent} onClose={() => setRunAgent(null)} />}
+        </AnimatePresence>
       </main>
     </div>
   );

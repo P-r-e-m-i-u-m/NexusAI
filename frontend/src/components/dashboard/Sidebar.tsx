@@ -41,10 +41,10 @@ export function Sidebar() {
             key={href}
             href={href}
             className={clsx(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all motion-reduce:transition-none motion-reduce:transform-none duration-200",
               path === href
                 ? "bg-indigo-600 text-white"
-                : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                : "text-gray-400 hover:bg-gray-800 hover:text-white hover:translate-x-1"
             )}
           >
             <Icon size={16} />

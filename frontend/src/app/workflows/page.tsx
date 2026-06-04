@@ -94,7 +94,7 @@ export default function WorkflowsPage() {
             />
           </div>
           <button onClick={() => save.mutate()}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white">
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none">
             <Save size={14} /> Save
           </button>
         </div>
@@ -108,7 +108,7 @@ export default function WorkflowsPage() {
                 <button
                   key={type}
                   onClick={() => addNode(type, label)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-800 text-sm text-gray-300 text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-800 text-sm text-gray-300 text-left active:scale-95 transition-all motion-reduce:transition-none motion-reduce:transform-none"
                 >
                   <span className={`w-2 h-2 rounded-full ${color}`} />
                   {label}
@@ -128,7 +128,7 @@ export default function WorkflowsPage() {
                 workflows.map((wf: any) => (
                   <div key={wf.id} className="flex items-center justify-between mb-2">
                     <span className="text-xs text-gray-400 truncate flex-1">{wf.name}</span>
-                    <button onClick={() => runWf(wf.id)} className="text-indigo-400 hover:text-indigo-300 ml-2">
+                    <button onClick={() => runWf(wf.id)} className="text-indigo-400 hover:text-indigo-300 ml-2 active:scale-90 transition-transform">
                       <Play size={11} />
                     </button>
                   </div>

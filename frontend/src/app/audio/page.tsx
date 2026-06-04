@@ -351,7 +351,7 @@ ${segment.text.trim()}
             <button
               onClick={transcribe}
               disabled={!file || loading}
-              className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-medium text-white transition-all motion-reduce:transition-none motion-reduce:transform-none hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 active:scale-95"
             >
               {loading ? "Transcribing..." : "Transcribe"}
             </button>
@@ -411,7 +411,7 @@ ${segment.text.trim()}
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={copyToClipboard}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-700"
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-200 transition-all motion-reduce:transition-none motion-reduce:transform-none hover:border-gray-600 hover:bg-gray-700 active:scale-95"
                   >
                     <Copy size={14} />
                     Copy
@@ -419,7 +419,7 @@ ${segment.text.trim()}
 
                   <button
                     onClick={downloadText}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-700"
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-200 transition-all motion-reduce:transition-none motion-reduce:transform-none hover:border-gray-600 hover:bg-gray-700 active:scale-95"
                   >
                     <Download size={14} />
                     TXT
@@ -428,7 +428,7 @@ ${segment.text.trim()}
                   <button
                     onClick={downloadSrt}
                     disabled={!result.segments?.length}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-200 transition-all motion-reduce:transition-none motion-reduce:transform-none hover:border-gray-600 hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 active:scale-95"
                   >
                     <Download size={14} />
                     SRT
@@ -486,7 +486,7 @@ ${segment.text.trim()}
                         key={item.id}
                         type="button"
                         onClick={() => setResult(item)}
-                        className="w-full rounded-lg border border-gray-800 bg-gray-950 p-4 text-left transition-colors hover:border-gray-700 hover:bg-gray-900"
+                        className="w-full rounded-lg border border-gray-800 bg-gray-950 p-4 text-left transition-all motion-reduce:transition-none motion-reduce:transform-none hover:border-gray-700 hover:bg-gray-900 hover:-translate-y-1 hover:shadow-lg active:scale-95"
                       >
                         <div className="mb-2 flex items-center justify-between gap-3">
                           <span className="truncate text-sm font-medium text-gray-200">
