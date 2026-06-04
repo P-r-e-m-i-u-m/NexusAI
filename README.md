@@ -3,7 +3,7 @@
 > Build, deploy and orchestrate AI agents, RAG pipelines, workflows, and more. One platform, every AI capability.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/YOUR_USERNAME/nexusai/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/nexusai/actions)
+[![CI](https://github.com/P-r-e-m-i-u-m/NexusAI/actions/workflows/ci.yml/badge.svg)](https://github.com/P-r-e-m-i-u-m/NexusAI/actions)
 
 ---
 
