@@ -44,7 +44,7 @@ async def chat(
     temperature: float = 0.7,
     max_tokens: int = 2048,
     stream: bool = False,
-) -> str | AsyncIterator:
+) -> str | AsyncIterator[str]:
     client = get_client(provider)
     cfg = PROVIDERS.get(provider, PROVIDERS["nvidia"])
     chosen_model = model or cfg["default_model"]
@@ -52,17 +52,22 @@ async def chat(
     logger.info("llm_request", provider=provider, model=chosen_model)
 
     if stream:
-        return client.chat.completions.create(
+        stream_response = await client.chat.completions.create(
             model=chosen_model,
-            messages=messages,
+            messages=messages, # type: ignore
             temperature=temperature,
             max_tokens=max_tokens,
             stream=True,
         )
+        async def _stream() -> AsyncIterator[str]:
+            async for chunk in stream_response: # type: ignore
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+        return _stream()
 
     response = await client.chat.completions.create(
         model=chosen_model,
-        messages=messages,
+        messages=messages, # type: ignore
         temperature=temperature,
         max_tokens=max_tokens,
     )

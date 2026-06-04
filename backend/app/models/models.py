@@ -17,7 +17,7 @@ class User(BaseModel):
     email = Column(String(255), unique=True, nullable=False, index=True)
     username = Column(String(100), unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(Enum(UserRole), default=UserRole.developer)
+    role: Column[UserRole] = Column(Enum(UserRole), default=UserRole.developer)
     is_active = Column(Boolean, default=True)
     api_key = Column(String(64), unique=True, index=True)
 

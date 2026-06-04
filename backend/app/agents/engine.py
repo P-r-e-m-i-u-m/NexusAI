@@ -83,8 +83,8 @@ Format your final answer clearly."""
             )
 
         async for chunk in stream:
-            if chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
+            if chunk:
+                yield chunk
 
 
 class Crew:

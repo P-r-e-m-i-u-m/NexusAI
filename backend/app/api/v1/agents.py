@@ -70,12 +70,12 @@ async def run_agent(agent_id: str, body: Dict, db: AsyncSession = Depends(get_db
         raise HTTPException(404, "Agent not found")
 
     config = AgentConfig(
-        name=agent.name,
-        role=agent.role,
-        goal=agent.goal,
-        backstory=agent.backstory,
-        model=agent.model,
-        provider=agent.provider,
+        name=str(agent.name),
+        role=str(agent.role),
+        goal=str(agent.goal),
+        backstory=str(agent.backstory),
+        model=str(agent.model),
+        provider=str(agent.provider),
     )
     executor = AgentExecutor(config)
     result_text = await executor.run(body.get("task", ""))
@@ -90,12 +90,12 @@ async def stream_agent(agent_id: str, body: Dict, db: AsyncSession = Depends(get
         raise HTTPException(404, "Agent not found")
 
     config = AgentConfig(
-        name=agent.name,
-        role=agent.role,
-        goal=agent.goal,
-        backstory=agent.backstory,
-        model=agent.model,
-        provider=agent.provider,
+        name=str(agent.name),
+        role=str(agent.role),
+        goal=str(agent.goal),
+        backstory=str(agent.backstory),
+        model=str(agent.model),
+        provider=str(agent.provider),
     )
     executor = AgentExecutor(config)
 
