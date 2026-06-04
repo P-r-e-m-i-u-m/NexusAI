@@ -57,9 +57,9 @@ async def update_workflow(
     wf = result.scalar_one_or_none()
     if not wf:
         raise HTTPException(404, "Workflow not found")
-    wf.name = data.name # type: ignore
-    wf.description = data.description # type: ignore
-    wf.graph = data.graph # type: ignore
+    wf.name = data.name  # type: ignore
+    wf.description = data.description  # type: ignore
+    wf.graph = data.graph  # type: ignore
     return {"id": wf.id, "name": wf.name}
 
 

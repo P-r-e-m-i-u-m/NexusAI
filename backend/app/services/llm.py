@@ -54,20 +54,22 @@ async def chat(
     if stream:
         stream_response = await client.chat.completions.create(
             model=chosen_model,
-            messages=messages, # type: ignore
+            messages=messages,  # type: ignore
             temperature=temperature,
             max_tokens=max_tokens,
             stream=True,
         )
+
         async def _stream() -> AsyncIterator[str]:
-            async for chunk in stream_response: # type: ignore
+            async for chunk in stream_response:  # type: ignore
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
+
         return _stream()
 
     response = await client.chat.completions.create(
         model=chosen_model,
-        messages=messages, # type: ignore
+        messages=messages,  # type: ignore
         temperature=temperature,
         max_tokens=max_tokens,
     )
