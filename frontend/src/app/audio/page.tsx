@@ -246,7 +246,7 @@ ${segment.text.trim()}
     <div className="flex h-screen overflow-hidden bg-gray-950">
       <Sidebar />
 
-      <main className="flex-1 overflow-auto p-8">
+      <main id="main-content" className="flex-1 overflow-auto p-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">Audio Transcription</h1>
           <p className="mt-1 text-sm text-gray-400">
