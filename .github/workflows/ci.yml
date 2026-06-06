@@ -44,7 +44,7 @@ jobs:
           JWT_SECRET: test_jwt_secret
         run: |
           cd backend
-          pytest tests/ -v --cov=app --cov-report=xml
+          PYTHONPATH=. pytest tests/ -v --cov=app --cov-report=xml
       - uses: codecov/codecov-action@v4
         with:
           file: backend/coverage.xml
