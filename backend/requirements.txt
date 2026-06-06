@@ -69,6 +69,7 @@ locust==2.32.2
 
 # Code quality
 black==24.10.0
+setuptools>=68.0.0
 ruff==0.7.1
 mypy==1.13.0
 pre-commit==4.0.1
