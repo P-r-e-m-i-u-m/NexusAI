@@ -15,7 +15,9 @@ celery[redis]==5.4.0
 
 # Auth
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-jose[cryptography]==3.3.0
+ecdsa==0.18.0
 python-dotenv==1.0.1
 
 # LLM / AI
@@ -71,3 +73,4 @@ black==24.10.0
 ruff==0.7.1
 mypy==1.13.0
 pre-commit==4.0.1
+setuptools

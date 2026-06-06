@@ -1,8 +1,30 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, GitBranch, Database, Activity, Zap, TrendingUp } from "lucide-react";
+import { animate, useMotionValue, useTransform, motion, useReducedMotion } from "framer-motion";
+import { useEffect } from "react";
 import { api } from "@/lib/api";
 import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
+
+function AnimatedCounter({ value }: { value: number | string }) {
+  const count = useMotionValue(0);
+  const shouldReduceMotion = useReducedMotion();
+  const rounded = useTransform(count, (latest) => Math.round(latest));
+
+  useEffect(() => {
+    if (typeof value === "number") {
+      if (shouldReduceMotion) {
+        count.set(value);
+        return;
+      }
+      const controls = animate(count, value, { duration: 1 });
+      return controls.stop;
+    }
+  }, [value, count, shouldReduceMotion]);
+
+  if (typeof value !== "number") return <>{value}</>;
+  return <motion.span>{rounded}</motion.span>;
+}
 
 const StatCard = ({ icon: Icon, label, value, color }: any) => (
   <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
@@ -12,7 +34,7 @@ const StatCard = ({ icon: Icon, label, value, color }: any) => (
         <Icon size={18} className="text-white" />
       </div>
     </div>
-    <p className="text-3xl font-bold text-white">{value ?? "—"}</p>
+    <p className="text-3xl font-bold text-white"><AnimatedCounter value={value ?? "—"} /></p>
   </div>
 );
 
@@ -125,7 +147,7 @@ export function DashboardHome() {
             { href: "/chat", label: "Start Chat", desc: "Talk to your agents" },
           ].map(item => (
             <a key={item.href} href={item.href}
-              className="p-4 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer">
+              className="p-4 bg-gray-800 hover:bg-gray-700 rounded-lg transition-all motion-reduce:transition-none motion-reduce:transform-none duration-200 cursor-pointer active:scale-95">
               <p className="text-sm font-medium text-white">{item.label}</p>
               <p className="text-xs text-gray-400 mt-1">{item.desc}</p>
             </a>
