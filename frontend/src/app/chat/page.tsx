@@ -1,4 +1,5 @@
 "use client";
+import toast from "react-hot-toast";
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Zap } from "lucide-react";
 import { streamChat } from "@/lib/api";
@@ -45,6 +46,7 @@ export default function ChatPage() {
       () => setStreaming(false),
       (message) => {
         setErrorMessage(message);
+        toast.error(message);
         setMessages(m => m.filter((msg, index) => index !== m.length - 1 || msg.content));
       },
     );
