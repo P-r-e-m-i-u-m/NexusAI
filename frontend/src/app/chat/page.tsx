@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Zap } from "lucide-react";
+import { Send, Bot, User, Zap, Loader2 } from "lucide-react";
 import { streamChat } from "@/lib/api";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
@@ -14,6 +14,7 @@ export default function ChatPage() {
   const [provider, setProvider] = useState("nvidia");
   const [errorMessage, setErrorMessage] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const cancelStreamRef = useRef<(() => void) | null>(null);
   const waitingForAssistant =
     streaming &&
     messages[messages.length - 1]?.role === "assistant" &&
@@ -21,6 +22,10 @@ export default function ChatPage() {
   const showMessageSkeleton = useMinimumLoading(waitingForAssistant);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  // Abort any in-flight stream on unmount so it cannot resolve into a
+  // setState on an unmounted component.
+  useEffect(() => () => cancelStreamRef.current?.(), []);
 
   const send = () => {
     if (!input.trim() || streaming) return;
@@ -34,7 +39,7 @@ export default function ChatPage() {
     const assistantMsg: Message = { role: "assistant", content: "" };
     setMessages(m => [...m, assistantMsg]);
 
-    streamChat(
+    cancelStreamRef.current = streamChat(
       allMsgs,
       provider,
       (token) => setMessages(m => {
@@ -42,9 +47,13 @@ export default function ChatPage() {
         copy[copy.length - 1] = { ...copy[copy.length - 1], content: copy[copy.length - 1].content + token };
         return copy;
       }),
-      () => setStreaming(false),
+      () => {
+        cancelStreamRef.current = null;
+        setStreaming(false);
+      },
       (message) => {
         setErrorMessage(message);
+        // Drop the placeholder assistant bubble if nothing ever streamed into it.
         setMessages(m => m.filter((msg, index) => index !== m.length - 1 || msg.content));
       },
     );
@@ -81,7 +90,11 @@ export default function ChatPage() {
             </div>
           )}
           {errorMessage && (
-            <div className="rounded-xl border border-red-900/60 bg-red-950/30 p-4 text-sm text-red-300">
+            <div
+              role="alert"
+              data-cy="chat-error"
+              className="rounded-xl border border-red-900/60 bg-red-950/30 p-4 text-sm text-red-300"
+            >
               {errorMessage}
             </div>
           )}
@@ -90,9 +103,17 @@ export default function ChatPage() {
               <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === "user" ? "bg-indigo-600" : "bg-gray-700"}`}>
                 {msg.role === "user" ? <User size={14} className="text-white" /> : <Bot size={14} className="text-gray-300" />}
               </div>
-              <div className={`max-w-2xl px-4 py-3 rounded-xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-200"}`}>
+              <div
+                data-cy={msg.role === "user" ? "user-message" : "assistant-message"}
+                className={`max-w-2xl px-4 py-3 rounded-xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-200"}`}
+              >
                 {showMessageSkeleton && i === messages.length - 1 && msg.role === "assistant" ? (
-                  <div className="w-64 space-y-2">
+                  <div
+                    role="status"
+                    aria-label="NexusAI is thinking"
+                    data-cy="typing-indicator"
+                    className="w-64 space-y-2"
+                  >
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-10/12" />
                     <Skeleton className="h-4 w-7/12" />
@@ -113,6 +134,7 @@ export default function ChatPage() {
         <div className="px-6 py-4 border-t border-gray-800">
           <div className="flex gap-3 items-end">
             <textarea
+              data-cy="chat-input"
               className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 resize-none max-h-32"
               placeholder="Message NexusAI..."
               rows={1}
@@ -122,10 +144,16 @@ export default function ChatPage() {
             />
             <button
               onClick={send}
+              data-cy="send-btn"
               disabled={!input.trim() || streaming}
-              className="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 rounded-xl flex items-center justify-center"
+              aria-label={streaming ? "Waiting for response" : "Send message"}
+              className="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl flex items-center justify-center"
             >
-              <Send size={16} className="text-white" />
+              {streaming ? (
+                <Loader2 size={16} data-cy="send-spinner" className="text-white animate-spin" />
+              ) : (
+                <Send size={16} className="text-white" />
+              )}
             </button>
           </div>
         </div>

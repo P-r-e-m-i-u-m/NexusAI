@@ -1,0 +1,7 @@
+# Cypress run artifacts
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
