@@ -12,10 +12,15 @@ function AgentModal({ onClose, onSave }: any) {
     name: "", role: "", goal: "", backstory: "",
     model: "openai/gpt-oss-120b", provider: "nvidia",
   });
+    const [isClosing, setIsClosing] = useState(false);
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => onClose(), 200);
+  };
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+    <div className={`fixed inset-0 bg-black/60 flex items-center justify-center z-50 ${isClosing ? "animate-modal-fade-out" : "animate-modal-fade-in"}`}>
+      <div className={`bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg ${isClosing ? "animate-modal-scale-out" : "animate-modal-scale-in"}`}>
         <h2 className="text-lg font-bold text-white mb-4">New Agent</h2>
         <div className="space-y-3">
           {[
@@ -58,7 +63,7 @@ function AgentModal({ onClose, onSave }: any) {
           </div>
         </div>
         <div className="flex gap-3 mt-5">
-          <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-gray-700 text-sm text-gray-400 hover:bg-gray-800">Cancel</button>
+          <button onClick={handleClose} className="flex-1 py-2 rounded-lg border border-gray-700 text-sm text-gray-400 hover:bg-gray-800">Cancel</button>
           <button onClick={() => onSave(form)} className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm text-white font-medium">Create Agent</button>
         </div>
       </div>

@@ -3,21 +3,58 @@ import { useQuery } from "@tanstack/react-query";
 import { Bot, GitBranch, Database, Activity, Zap, TrendingUp } from "lucide-react";
 import { api } from "@/lib/api";
 import { Skeleton, useMinimumLoading } from "@/components/ui/Skeleton";
+import { useEffect, useState } from "react";
 
-const StatCard = ({ icon: Icon, label, value, color }: any) => (
-  <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-    <div className="flex items-center justify-between mb-3">
-      <span className="text-sm text-gray-400">{label}</span>
-      <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center`}>
-        <Icon size={18} className="text-white" />
+
+const StatCard = ({ icon: Icon, label, value, color }: any) => {
+  const [displayValue, setDisplayValue] = useState(value ?? "—");
+
+  useEffect(() => {
+    if (typeof value !== "number") {
+      setDisplayValue(value ?? "—");
+      return;
+    }
+
+    if (typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDisplayValue(value);
+      return;
+    }
+
+    const startTime = performance.now();
+    const duration = 250;
+    let frameId: number;
+
+    const animate = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      setDisplayValue(Math.round(value * progress));
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(animate);
+      }
+    };
+
+    setDisplayValue(0);
+    frameId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [value]);
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 transition-all duration-200 ease-in-out hover:-translate-y-1 hover:shadow-lg">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm text-gray-400">{label}</span>
+        <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center`}>
+          <Icon size={18} className="text-white" />
+        </div>
       </div>
+      <p className="text-3xl font-bold text-white">{displayValue}</p>
     </div>
-    <p className="text-3xl font-bold text-white">{value ?? "—"}</p>
-  </div>
-);
+  );
+};
 
 const StatCardSkeleton = () => (
-  <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+  <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 transition-all duration-200 ease-in-out hover:-translate-y-1 hover:shadow-lg">
     <div className="flex items-center justify-between mb-3">
       <Skeleton className="h-4 w-20" />
       <Skeleton className="h-9 w-9 rounded-lg" />

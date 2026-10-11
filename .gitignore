@@ -16,3 +16,7 @@ venv/
 coverage.xml
 htmlcov/
 .venv11
+
+# Local Python virtual environments
+backend/.venv/
+backend/.venv312/

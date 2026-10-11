@@ -101,8 +101,21 @@ export default function ChatPage() {
                   msg.content
                 )}
                 {streaming && i === messages.length - 1 && msg.role === "assistant" && (
-                  <span className="inline-block w-1 h-4 bg-gray-400 ml-1 animate-pulse" />
+                  <span
+                    className="inline-flex items-center gap-1 ml-1 align-middle"
+                    role="status"
+                    aria-label="Assistant is responding"
+                  >
+                    {[0, 1, 2].map((dot) => (
+                      <span
+                        key={dot}
+                        className="h-1.5 w-1.5 rounded-full bg-gray-400 animate-bounce"
+                        style={{ animationDelay: `${dot * 100}ms` }}
+                      />
+                    ))}
+                  </span>
                 )}
+
               </div>
             </div>
           ))}

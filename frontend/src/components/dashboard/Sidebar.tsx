@@ -116,7 +116,7 @@ export function Sidebar() {
               }}
               onBlur={() => setTooltip(null)}
               className={clsx(
-                "flex items-center rounded-lg text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                "flex items-center rounded-lg text-sm transition-all duration-200 ease-in-out hover:translate-x-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 isCollapsed ? "justify-center p-2.5" : "px-3 py-2.5 gap-3",
                 isActive
                   ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-900/30 font-medium"
@@ -181,7 +181,7 @@ export function Sidebar() {
           </button>
 
           {/* Expanded Profile Info */}
-          <div className={clsx("flex flex-col overflow-hidden transition-opacity duration-300", isCollapsed && "hidden")}>
+          <div className={clsx("flex flex-col overflow-hidden transition-all duration-200 ease-in-out",isCollapsed? "max-w-0 opacity-0 translate-x-1": "max-w-48 opacity-100 translate-x-0")}>
             <p className="text-xs font-semibold text-white leading-none whitespace-nowrap">
               Admin User
             </p>

@@ -48,3 +48,55 @@ body { @apply bg-gray-950 text-gray-100 antialiased; }
   animation: skeleton-shimmer 1.2s ease-in-out infinite;
   will-change: background-position;
 }
+button:not(:disabled) {
+  transition: transform 150ms ease-in-out;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.95);
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modal-scale-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modal-scale-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.98); }
+}
+
+.animate-modal-fade-in {
+  animation: modal-fade-in 200ms ease-in-out forwards;
+}
+
+.animate-modal-fade-out {
+  animation: modal-fade-out 200ms ease-in-out forwards;
+}
+
+.animate-modal-scale-in {
+  animation: modal-scale-in 200ms ease-in-out forwards;
+}
+
+.animate-modal-scale-out {
+  animation: modal-scale-out 200ms ease-in-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
